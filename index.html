@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Storia del Luogo - Personalizzata</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            text-align: center;
+            padding: 20px;
+        }
+        .container {
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            max-width: 90%;
+            width: 400px;
+        }
+        .logo {
+            max-width: 180px;
+            margin-bottom: 20px;
+        }
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-size: 24px;
+        }
+        p {
+            color: #34495e;
+            line-height: 1.6;
+            margin-bottom: 25px;
+        }
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 50px;
+            padding: 12px 24px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            margin-bottom: 15px;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        #status {
+            margin-top: 20px;
+            font-weight: bold;
+            min-height: 20px;
+        }
+        .location-info {
+            margin-top: 15px;
+            font-size: 14px;
+            color: #7f8c8d;
+        }
+        .loading {
+            display: none;
+            width: 40px;
+            height: 40px;
+            margin: 20px auto;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        .splash-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #3498db;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            transition: opacity 0.5s ease-in-out;
+        }
+        .splash-logo {
+            max-width: 200px;
+            margin-bottom: 30px;
+            animation: pulse 2s infinite;
+        }
+        .splash-text {
+            color: white;
+            font-size: 24px;
+            font-weight: bold;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        .footer {
+            margin-top: 20px;
+            font-size: 12px;
+            color: #7f8c8d;
+        }
+    </style>
+</head>
+<body>
+    <!-- Splash Screen -->
+    <div id="splashScreen" class="splash-screen">
+        <img src="/api/placeholder/200/100" alt="Logo" class="splash-logo" id="splashLogo">
+        <div class="splash-text">Storia del Luogo</div>
+    </div>
+
+    <div class="container">
+        <img src="/api/placeholder/180/60" alt="Logo" class="logo" id="mainLogo">
+        <h1>Storia del Luogo</h1>
+        <p>Questa app rileva la tua posizione attuale e ti fornisce informazioni storiche sul luogo in cui ti trovi.</p>
+        <button id="findLocation">Scopri la Storia</button>
+        <div id="loading" class="loading"></div>
+        <div id="status"></div>
+        <div id="locationInfo" class="location-info"></div>
+        <div class="footer">© 2025 Storia del Luogo App</div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Nascondi splash screen dopo 2 secondi
+            setTimeout(function() {
+                const splashScreen = document.getElementById('splashScreen');
+                splashScreen.style.opacity = '0';
+                setTimeout(function() {
+                    splashScreen.style.display = 'none';
+                }, 500);
+            }, 2000);
+
+            const findButton = document.getElementById('findLocation');
+            const statusElement = document.getElementById('status');
+            const locationInfoElement = document.getElementById('locationInfo');
+            const loadingElement = document.getElementById('loading');
+
+            findButton.addEventListener('click', getLocation);
+
+            function getLocation() {
+                statusElement.textContent = "Rilevamento della posizione...";
+                locationInfoElement.textContent = "";
+                loadingElement.style.display = "block";
+                
+                if (navigator.geolocation) {
+                    navigator.geolocation.getCurrentPosition(showPosition, showError, {
+                        enableHighAccuracy: true,
+                        timeout: 10000,
+                        maximumAge: 0
+                    });
+                } else {
+                    statusElement.textContent = "La geolocalizzazione non è supportata da questo browser.";
+                    loadingElement.style.display = "none";
+                }
+            }
+
+            function showPosition(position) {
+                const latitude = position.coords.latitude;
+                const longitude = position.coords.longitude;
+                const accuracy = position.coords.accuracy;
+                
+                locationInfoElement.textContent = `Lat: ${latitude.toFixed(6)}, Long: ${longitude.toFixed(6)} (precisione: ${accuracy.toFixed(1)}m)`;
+                
+                // Richiesta al backend
+                checkLocationOnBackend(latitude, longitude);
+            }
+
+            function checkLocationOnBackend(lat, long) {
+                statusElement.textContent = "Cercando informazioni specifiche sulla tua posizione...";
+                
+                // URL del tuo backend - sostituiscilo con il tuo servizio reale
+                const backendUrl = `https://your-backend-url.com/api/locations?lat=${lat}&long=${long}`;
+                
+                // Simuliamo una richiesta al backend
+                // In un'app reale, sostituisci questa funzione con una richiesta fetch() effettiva
+                simulateBackendRequest(lat, long);
+            }
+
+            function simulateBackendRequest(lat, long) {
+                // Questa è una simulazione - in un'app reale faresti una richiesta fetch()
+                setTimeout(() => {
+                    // Simula alcune aree predefinite per dimostrare il funzionamento
+                    // In un'app reale queste verrebbero dal tuo database tramite API
+                    
+                    // Esempio di aree specifiche (Colosseo, Torre di Pisa, ecc.)
+                    const predefinedAreas = [
+                        { name: "Colosseo", lat: 41.8902, long: 12.4922, url: "https://it.wikipedia.org/wiki/Colosseo", radius: 0.5 },
+                        { name: "Torre di Pisa", lat: 43.7230, long: 10.3966, url: "https://it.wikipedia.org/wiki/Torre_pendente_di_Pisa", radius: 0.3 },
+                        { name: "Duomo di Milano", lat: 45.4641, long: 9.1919, url: "https://it.wikipedia.org/wiki/Duomo_di_Milano", radius: 0.2 }
+                    ];
+                    
+                    // Calcola la distanza tra due punti in km usando la formula dell'emisenoverso
+                    function getDistance(lat1, lon1, lat2, lon2) {
+                        const R = 6371; // Raggio della Terra in km
+                        const dLat = (lat2 - lat1) * Math.PI / 180;
+                        const dLon = (lon2 - lon1) * Math.PI / 180;
+                        const a = 
+                            Math.sin(dLat/2) * Math.sin(dLat/2) +
+                            Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+                            Math.sin(dLon/2) * Math.sin(dLon/2);
+                        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+                        return R * c;
+                    }
+                    
+                    // Cerca tra le aree predefinite
+                    let foundSpecificLocation = false;
+                    
+                    for (const area of predefinedAreas) {
+                        const distance = getDistance(lat, long, area.lat, area.long);
+                        
+                        if (distance <= area.radius) {
+                            // Siamo in un'area specifica!
+                            statusElement.textContent = `Sei vicino a: ${area.name}! Apertura pagina dedicata...`;
+                            setTimeout(() => {
+                                window.open(area.url, '_blank');
+                            }, 1000);
+                            foundSpecificLocation = true;
+                            break;
+                        }
+                    }
+                    
+                    if (!foundSpecificLocation) {
+                        // Se non siamo in un'area specifica, usa l'API di Wikipedia come fallback
+                        fetchWikipediaInfo(lat, long);
+                    }
+                    
+                    loadingElement.style.display = "none";
+                }, 2000);
+            }
+
+            function fetchWikipediaInfo(lat, long) {
+                const wikipediaUrl = `https://it.wikipedia.org/w/api.php?action=query&list=geosearch&gscoord=${lat}|${long}&gsradius=1000&gslimit=10&format=json&origin=*`;
+                
+                statusElement.textContent = "Ricerca luoghi di interesse storico nelle vicinanze...";
+                
+                fetch(wikipediaUrl)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.query && data.query.geosearch && data.query.geosearch.length > 0) {
+                            const place = data.query.geosearch[0];
+                            const placeUrl = `https://it.wikipedia.org/wiki/${encodeURIComponent(place.title)}`;
+                            
+                            statusElement.textContent = `Trovato: ${place.title}`;
+                            
+                            // Apri il link alla pagina Wikipedia
+                            window.open(placeUrl, '_blank');
+                        } else {
+                            // Se non troviamo nulla su Wikipedia, proviamo con Google Maps
+                            const googleMapsUrl = `https://www.google.com/maps/search/storia+luoghi+storici/@${lat},${long},15z`;
+                            statusElement.textContent = "Nessun luogo storico specifico trovato. Apro Google Maps per la ricerca nella zona.";
+                            window.open(googleMapsUrl, '_blank');
+                        }
+                    })
+                    .catch(error => {
+                        console.error("Errore durante la ricerca:", error);
+                        statusElement.textContent = "Si è verificato un errore durante la ricerca. Provo con Google Maps.";
+                        const googleMapsUrl = `https://www.google.com/maps/search/storia+luoghi+storici/@${lat},${long},15z`;
+                        window.open(googleMapsUrl, '_blank');
+                    });
+            }
+
+            function showError(error) {
+                loadingElement.style.display = "none";
+                switch(error.code) {
+                    case error.PERMISSION_DENIED:
+                        statusElement.textContent = "Permesso di geolocalizzazione negato.";
+                        break;
+                    case error.POSITION_UNAVAILABLE:
+                        statusElement.textContent = "Informazioni sulla posizione non disponibili.";
+                        break;
+                    case error.TIMEOUT:
+                        statusElement.textContent = "Richiesta di posizione scaduta.";
+                        break;
+                    case error.UNKNOWN_ERROR:
+                        statusElement.textContent = "Si è verificato un errore sconosciuto.";
+                        break;
+                }
+            }
+        });
+    </script>
+</body>
+</html>
