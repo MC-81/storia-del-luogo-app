@@ -180,13 +180,32 @@
 
             function checkLocationOnBackend(lat, long) {
                 statusElement.textContent = "Cercando informazioni specifiche sulla tua posizione...";
+                loadingElement.style.display = "block";
                 
                 // URL del tuo backend - sostituiscilo con il tuo servizio reale
-                const backendUrl = `https://your-backend-url.com/api/locations?lat=${lat}&long=${long}`;
+                const backendUrl = `https://abbrivio-location.netlify.app/.netlify/functions/check-location?lat=${lat}&long=${long}`;
                 
-                // Simuliamo una richiesta al backend
-                // In un'app reale, sostituisci questa funzione con una richiesta fetch() effettiva
-                simulateBackendRequest(lat, long);
+                fetch(backendUrl)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.found) {
+                            statusElement.textContent = `Sei vicino a: ${data.location.name}! Apertura pagina dedicata...`;
+                            setTimeout(() => {
+                                window.open(data.location.url, '_blank');
+                            }, 1000);
+                        } else {
+                            
+                // Se non siamo in un'area specifica, usa l'API di Wikipedia come fallback
+                fetchWikipediaInfo(lat, long);
+            }
+            loadingElement.style.display = "none";
+        })
+        .catch(error => {
+            console.error("Errore durante la chiamata al backend:", error);
+            statusElement.textContent = "Errore di connessione. Provo con Wikipedia...";
+            fetchWikipediaInfo(lat, long);
+            loadingElement.style.display = "none";
+        });
             }
 
             function simulateBackendRequest(lat, long) {
